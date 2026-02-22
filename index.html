@@ -1,0 +1,568 @@
+<!doctype html>
+<html>
+  <head>
+    <base target="_top" />
+    <meta charset="UTF-8" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      /* 1. Global Styles */
+      body {
+        background: #f4f6f9;
+        font-size: 13px;
+        font-family: Calibri;
+      }
+
+      /* 2. Layout & Typography */
+      .logo {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin-bottom: 10px;
+      }
+      .print-logo {
+        width: 320px;
+        height: auto;
+        display: block;
+        margin: 0 auto 4px auto; /* tight spacing */
+      }
+      .address-text {
+        font-size: 9pt;
+        margin-bottom: 6px;
+      }
+
+      #printBranch {
+        font-size: 16pt;
+        font-weight: bold;
+        border-bottom: 2px solid black;
+        display: inline-block;
+        padding: 0 30px;
+        text-transform: uppercase;
+      }
+
+      .text-primary {
+        color: #0056b3 !important;
+      }
+
+      /* 3. Table Structure */
+      table {
+        width: 100% !important;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+
+      table th,
+      table td {
+        border: 1px solid black !important;
+        padding: 4px 8px;
+        text-align: center;
+      }
+
+      /* 4. Column Widths */
+      .col-no {
+        width: 5%;
+      }
+      .col-owner {
+        width: 30%;
+        text-align: left;
+      }
+      .col-year {
+        width: 10%;
+      }
+      .col-engine {
+        width: 15%;
+      }
+      .col-chassis {
+        width: 25%;
+      }
+      .col-plates {
+        width: 15%;
+      }
+
+      /* 5. Signatures */
+      .signature-row {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin-top: 30px;
+      }
+
+      .signature {
+        width: 150px;
+        height: 20px; /* Adjust this value as needed */
+        display: block;
+      }
+
+      /* 6. Print Settings */
+      @media print {
+        @page {
+          margin: 10mm;
+          size: portrait;
+        }
+
+        body {
+          background: white;
+        }
+        body * {
+          visibility: hidden;
+        }
+
+        #printSection,
+        #printSection * {
+          visibility: visible;
+        }
+
+        #printSection {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+        }
+
+        .signature-row {
+          display: flex !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-4">
+      <!-- Loading bar -->
+      <div id="loadingBox" class="alert alert-info text-center">
+        <div class="progress mb-2">
+          <div
+            class="progress-bar progress-bar-striped progress-bar-animated"
+            style="width: 100%"
+          >
+            Loading data…
+          </div>
+        </div>
+        Please wait while data is loading
+      </div>
+
+      <!-- Error message -->
+      <div id="errorBox" class="alert alert-danger text-center d-none">
+        ❌ Failed to load data. Please refresh the page.
+      </div>
+
+      <!-- Branch Selector -->
+      <div class="card p-3 mb-3 shadow-sm">
+        <input
+          type="text"
+          id="branchInput"
+          list="branchOptions"
+          class="form-control text-center fw-bold"
+          placeholder="SELECT DESTINATION BRANCH"
+        />
+        <datalist id="branchOptions">
+          <option value="LAGTANG"></option>
+          <option value="V-RAMA"></option>
+          <option value="BULACAO"></option>
+          <option value="Y3S TALISAY"></option>
+          <option value="MINGLANILLA"></option>
+          <option value="Y3S PARDO"></option>
+          <option value="LAPU-LAPU"></option>
+          <option value="BACAYAN"></option>
+          <option value="SAN FERNANDO MB"></option>
+          <option value="Y3S SAN FERNANDO"></option>
+          <option value="LILOAN"></option>
+          <option value="CORDOVA MB"></option>
+          <option value="Y3S CORDOVA"></option>
+          <option value="CLARIN"></option>
+          <option value="TOLEDO"></option>
+          <option value="UBAY"></option>
+          <option value="CARMEN"></option>
+          <option value="TUBIGON"></option>
+          <option value="TALIBON"></option>
+          <option value="BOGO"></option>
+          <option value="BALAMBAN"></option>
+          <option value="Y3S BARILI"></option>
+          <option value="BARILI MB"></option>
+          <option value="SIERRA BULLONES"></option>
+          <option value="PITOGO"></option>
+          <option value="TAYUD CONSOLACION"></option>
+          <option value="PINAMUNGAJAN"></option>
+          <option value="CANDIJAY"></option>
+          <option value="YATI LILOAN"></option>
+          <option value="CAMOTES"></option>
+        </datalist>
+      </div>
+
+      <!-- Search UI -->
+      <div class="row g-2 mb-3">
+        <div class="col-md-8">
+          <input
+            type="text"
+            id="search"
+            class="form-control"
+            placeholder="Search Plate, Owner, or Engine..."
+          />
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-primary w-100" onclick="searchAndAdd()">
+            SEARCH & ADD
+          </button>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-danger w-100" onclick="removeChecked()">
+            REMOVE
+          </button>
+        </div>
+      </div>
+
+      <table class="table table-bordered bg-white text-center">
+        <thead class="table-dark">
+          <tr>
+            <th><input type="checkbox" id="selectAll" /></th>
+            <th>NO</th>
+            <th>YEAR</th>
+            <th>OWNER'S NAME</th>
+            <th>ENGINE#</th>
+            <th>CHASSIS#</th>
+            <th>PLATES#</th>
+            <th>BRANCH</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+
+      <div class="text-center">
+        <button
+          id="proceedBtn"
+          class="btn btn-success btn-lg"
+          onclick="openPreview()"
+        >
+          PROCEED
+        </button>
+        <span
+          id="proceedLoading"
+          class="spinner-border spinner-border-sm ms-2 d-none"
+          role="status"
+          aria-hidden="true"
+        ></span>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      let masterData = [];
+      let selectedRows = [];
+      let dataLoaded = false;
+
+      // Load data on start
+      window.onload = () => {
+        google.script.run
+          .withSuccessHandler((data) => {
+            masterData = data || [];
+            dataLoaded = true;
+
+            // hide loading bar
+            document.getElementById("loadingBox").classList.add("d-none");
+
+            // no data returned
+            if (!masterData.length) {
+              showError("No data returned from server.");
+            }
+          })
+          .withFailureHandler(() => {
+            showError("Unable to load data from server.");
+          })
+          .getSheetData();
+      };
+
+      function showError(msg) {
+        const errorBox = document.getElementById("errorBox");
+        errorBox.textContent = "❌ " + msg;
+        errorBox.classList.remove("d-none");
+        document.getElementById("loadingBox").classList.add("d-none");
+      }
+      function searchAndAdd() {
+        // ⛔ block search if data not loaded
+        if (!dataLoaded) {
+          alert("⏳ Data is still loading. Please wait.");
+          return;
+        }
+
+        const branch = document.getElementById("branchInput").value.toUpperCase();
+        if (!branch) {
+          alert("Please select a branch first!");
+          return;
+        }
+
+        const val = document.getElementById("search").value.toLowerCase();
+        if (!val) {
+          alert("Please enter a search value!");
+          return;
+        }
+
+        let match = masterData.filter((r) =>
+          r.join(" ").toLowerCase().includes(val),
+        );
+
+        // Filter to only matches that have the same branch
+        match = match.filter((m) => m[6] && m[6].toUpperCase() === branch);
+
+        if (match.length > 0) {
+          let addedCount = 0;
+          let duplicateCount = 0;
+          
+          match.forEach((m) => {
+            if (!selectedRows.includes(m)) {
+              selectedRows.push(m);
+              addedCount++;
+            } else {
+              duplicateCount++;
+            }
+          });
+          
+          if (duplicateCount > 0) {
+            alert(`⚠️ ${duplicateCount} row(s) already exist in the table!`);
+          }
+          
+          renderTable();
+          document.getElementById("search").value = "";
+        } else {
+          alert("Verify your plate number : Your Search not match!");
+        }
+      }
+
+      function renderTable() {
+        const body = document.getElementById("tableBody");
+        body.innerHTML = selectedRows
+          .map(
+            (r, i) => `
+    <tr>
+      <td><input type="checkbox" class="row-sel" data-index="${i}"></td>
+      <td>${i + 1}</td>
+      <td>
+        <input type="text" class="form-control form-control-sm text-center border-0" 
+               value="${r[0] || ""}" 
+               oninput="updateData(${i}, 0, this.value)">
+      </td>
+      <td>${r[1] || ""}</td> 
+      <td>${r[2] || ""}</td>
+      <td>${r[3] || ""}</td>
+      <td>${r[5] || ""}</td>
+      <td>${r[6] || ""}</td>
+    </tr>`,
+          )
+          .join("");
+      }
+
+      // SELECT ALL
+      document.addEventListener("change", function (e) {
+        // If Select All is clicked
+        if (e.target.id === "selectAll") {
+          document.querySelectorAll(".row-sel").forEach((cb) => {
+            cb.checked = e.target.checked;
+          });
+        }
+
+        // If individual checkbox changes
+        if (e.target.classList.contains("row-sel")) {
+          const all = document.querySelectorAll(".row-sel");
+          const checked = document.querySelectorAll(".row-sel:checked");
+          const selectAll = document.getElementById("selectAll");
+
+          if (selectAll) {
+            selectAll.checked = all.length > 0 && all.length === checked.length;
+          }
+        }
+      });
+
+      /**
+       * This helper function saves the edited value back to the
+       * selectedRows array so the print preview stays updated.
+       */
+      function updateData(rowIndex, colIndex, newValue) {
+        selectedRows[rowIndex][colIndex] = newValue;
+      }
+      function removeChecked() {
+        const items = document.querySelectorAll(".row-sel:checked");
+        const toRemove = Array.from(items).map((i) =>
+          parseInt(i.dataset.index),
+        );
+
+        if (toRemove.length === 0) {
+          alert("No rows selected.");
+          return;
+        }
+
+        selectedRows = selectedRows.filter((_, i) => !toRemove.includes(i));
+
+        // Uncheck Select All after removal
+        const selectAll = document.getElementById("selectAll");
+        if (selectAll) selectAll.checked = false;
+
+        renderTable();
+      }
+
+      function openPreview() {
+        const branch = document.getElementById("branchInput").value;
+        if (!branch) return alert("Select a branch!");
+
+        if (selectedRows.length === 0) {
+          return alert("Table is empty! Please add entries before proceeding.");
+        }
+
+        // Show loading state on PROCEED button
+        const proceedBtn = document.getElementById("proceedBtn");
+        const proceedLoading = document.getElementById("proceedLoading");
+        if (proceedBtn) proceedBtn.disabled = true;
+        if (proceedLoading) proceedLoading.classList.remove("d-none");
+        // Generate table rows HTML
+        const tableRows = selectedRows
+          .map(
+            (r, i) => `
+    <tr>
+      <td style="border: 1px solid black; padding: 4px;">${i + 1}</td>
+      <td style="border: 1px solid black; padding: 4px;">${r[0] || ""}</td>
+      <td style="border: 1px solid black; padding: 4px;">${r[1] || ""}</td>
+      <td style="border: 1px solid black; padding: 4px;">${r[2] || ""}</td>
+      <td style="border: 1px solid black; padding: 4px;">${r[3] || ""}</td>
+      <td style="border: 1px solid black; padding: 4px;">${r[5] || ""}</td>
+    </tr>`,
+          )
+          .join("");
+
+        // Drive file id for the logo
+        const driveLogoId = "1A-ddOQjB2NTILPKvXq1MR_6KmWcn8rKf";
+
+        // Signature Drive IDs (from links you provided)
+        const signatureDriveId1 = "11NCOFCgBHvn7IcUw8ZRACF0MVo4SKm9r";
+        const signatureDriveId2 = "1g6loCqX-cO-_oqKeA4oHTphOCbxPEl_U";
+
+        // Keep external URLs as fallbacks in case server-side fetch fails
+        const signatureFallbackUrl1 =
+          "https://image2url.com/r2/default/images/1771337603150-7f19c059-8c2a-4709-bad0-35093ff9c231.jpg";
+        const signatureFallbackUrl2 =
+          "https://image2url.com/r2/default/images/1771337411609-9ea3acf4-8e02-44f5-a49c-838b7f12c170.jpg";
+
+        // Fallback inline SVG (used if Drive image not available)
+        const svgFallback =
+          "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 700 80'><rect width='100%25' height='100%25' fill='%230056b3'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='28' fill='white'>GMPC</text></svg>";
+
+        // Request base64 data URLs from server for logo + signatures
+        const refs = [
+          { type: "drive", id: driveLogoId },
+          { type: "drive", id: signatureDriveId1 },
+          { type: "drive", id: signatureDriveId2 },
+        ];
+
+        google.script.run
+          .withSuccessHandler(function (arr) {
+            const logoSrc = arr && arr[0] ? arr[0] : svgFallback;
+            const sig1 = arr && arr[1] ? arr[1] : signatureFallbackUrl1;
+            const sig2 = arr && arr[2] ? arr[2] : signatureFallbackUrl2;
+            // hide loading state
+            if (proceedBtn) proceedBtn.disabled = false;
+            if (proceedLoading) proceedLoading.classList.add("d-none");
+            renderPrintWindow(branch, tableRows, logoSrc, sig1, sig2);
+          })
+          .withFailureHandler(function () {
+            // hide loading state on failure as well
+            if (proceedBtn) proceedBtn.disabled = false;
+            if (proceedLoading) proceedLoading.classList.add("d-none");
+            renderPrintWindow(
+              branch,
+              tableRows,
+              svgFallback,
+              signatureUrl1,
+              signatureUrl2,
+            );
+          })
+          .getImagesBase64(refs);
+      }
+
+      // Render preview window (keeps template separate so it can receive imgSrc safely)
+      function renderPrintWindow(branch, tableRows, imgSrc, sig1Src, sig2Src) {
+        const printWindow = window.open("", "_blank");
+        printWindow.document.write(`
+    <html>
+      <head>
+        <title>Print Preview - ${branch}</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+  body { 
+    font-family: Arial, sans-serif; 
+    font-size: 14px; 
+    padding: 20px; 
+  }
+  #printBranch { font-size: 20px; font-weight: bold; border-bottom: 2px solid black; display: inline-block; padding: 0 40px; text-transform: uppercase; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  table th, table td { border: 1px solid black !important; padding: 4px 8px; text-align: center; }
+  .logo { 
+  width: 350px; /* Set a specific width that looks good on A4 */
+  height: auto; 
+  display: block; 
+  margin: 0 auto 10px auto; 
+}
+
+  .signature { width: 200px; height: auto; }
+  .signature-row { margin-top: 30px; display: flex; justify-content: space-between; }
+
+  @media print { 
+    .no-print { display: none; } 
+    
+    /* This scales everything inside the print section */
+    body { 
+      font-size: 8pt; 
+    }
+    
+    /* You can also target specific elements for the printer */
+    table { 
+      font-size: 8pt; 
+    }
+  }
+</style>
+
+      </head>
+      <body>
+        <div class="text-center no-print mb-4">
+          <button class="btn btn-primary" onclick="window.print()">PRINT DOCUMENT</button>
+          <button class="btn btn-secondary" onclick="window.close()">CLOSE</button>
+        </div>
+        <div id="printSection">
+    <div class="text-center" style="text-align: center;">
+  <img
+    src="${imgSrc}"
+    class="print-logo"
+    alt="GMPC Logo"
+    style="display: block; margin: 0 auto 1px auto; position: relative; max-width: 400px; height: auto;"
+    referrerpolicy="no-referrer">
+
+  <div class="address-text" style="font-size: 9px; font-weight: normal;">
+    GMPC BUILDING CEBU SOUTH ROAD N. BACALSO AVE. BULACAO, TALISAY CITY CEBU
+  </div>
+
+  <div id="printBranch" class="mt-2" style="margin-top: 8px;">${branch}</div>
+  <div class="fw-normal">BRANCH</div>
+</div>
+
+
+          <table>
+            <thead>
+              <tr><th>NO.</th><th>YEAR</th><th>OWNER'S NAME</th><th>ENGINE#</th><th>CHASSIS#</th><th>PLATES#</th></tr>
+            </thead>
+            <tbody>${tableRows}</tbody>
+          </table>
+          <div class="signature-row">
+            <div style="width: 200px; text-align: center;">
+                <img src="${sig1Src}" class="signature" style="max-width:100%; height:auto;">
+            </div>
+            <div style="text-align: left; width: 200px;">
+                <img src="${sig2Src}" class="signature" style="max-width:100%; height:auto;">
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>
+  `);
+        printWindow.document.close();
+      }
+    </script>
+  </body>
+</html>
